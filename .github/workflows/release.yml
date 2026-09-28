@@ -1,0 +1,26 @@
+name: Push gem
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '4.0'
+          bundler-cache: true
+      - name: Verify tag and test
+        run: |
+          test "$GITHUB_REF_NAME" = "v$(ruby -Ilib -radscrawl/version -e 'print AdsCrawl::VERSION')"
+          bundle exec rake test
+      - uses: rubygems/release-gem@v1
